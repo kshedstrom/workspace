@@ -39,7 +39,7 @@ EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 
 # Name of MOM6-examples directory
-MOM6_EXAMPLES=MOM6-examples
+MOM6_EXAMPLES=/center/d/kate/ESMG/ESMG-configs
 # Name of FMS/shared directory
 FMS=$(MOM6_EXAMPLES)/src/FMS
 # Name of MOM6 directory
@@ -73,17 +73,17 @@ LAND_NULL=$(EXTRAS)/land_null
 # Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
 ICE_OCEAN_EXTRAS=$(MOM6_EXAMPLES)/src/ice_ocean_extras
 # Location to build
-BUILD_DIR=$(MOM6_EXAMPLES)/build
+BUILD_DIR=/center/w/kate/MOM6/build
 #BUILD_DIR=$(MOM6_EXAMPLES)/build-openmp
 #BUILD_DIR=$(MOM6_EXAMPLES)/build-intel15
 # MKMF package
-MKMF_DIR=$(BUILD_DIR)/mkmf
+MKMF_DIR=$(MOM6_EXAMPLES)/src/mkmf
 # Location of bin scripts
 BIN_DIR=$(MKMF_DIR)/bin
 # Location of site templats
 TEMPLATE_DIR=$(MKMF_DIR)/templates
 # Relative path from compile directory to top
-REL_PATH=../../../../..
+#REL_PATH=../../../../..
 
 #CPPDEFS="-Duse_libMPI -Duse_netCDF -Duse_LARGEFILE -DSPMD -Duse_shared_pointers -Duse_SGI_GSM -DLAND_BND_TRACERS"
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
@@ -98,13 +98,13 @@ SITE=ncrc
 # MPIRUN can be aprun or mpirun
 MPIRUN=aprun
 # MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
-MAKEMODE=NETCDF=4 OPENMP=1
-MAKEMODE=NETCDF=3 OPENMP=1
+#MAKEMODE=NETCDF=4 OPENMP=1
+#MAKEMODE=NETCDF=3 OPENMP=1
 MAKEMODE=NETCDF=4
-MAKEMODE=NETCDF=3
+#MAKEMODE=NETCDF=3
 MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
-COMPILERS=gnu intel pgi
+COMPILERS=gnu pgi
 
 # Version of code
 MOM6_tag=dev/master

@@ -87,7 +87,7 @@ MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
 BIN_DIR=$(MKMF_DIR)/bin
 # Location of site templats
-TEMPLATE_DIR=$(MKMF_DIR)/templates
+TEMPLATE_DIR=$(MKMF_DIR)/../mkmf.local
 # Relative path from compile directory to top
 #REL_PATH=../../../../..
 
@@ -100,8 +100,8 @@ STATS_PLATFORM=
 STATS_COMPILER_VER=
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\"'
 CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\" -DMAXFIELDMETHODS_=500
-# SITE can be ncrc, hpcs, doe, linux
-SITE=ncrc
+# SITE can be ncrc, hpcs, doe, linux, fish
+SITE=linux
 # MPIRUN can be aprun or mpirun
 MPIRUN=aprun
 # MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
@@ -410,15 +410,11 @@ $(BUILD_DIR)/cray/env:
 $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
-	@echo module unload PrgEnv-pgi > $@
-	@echo module unload PrgEnv-pathscale >> $@
-	@echo module unload PrgEnv-intel >> $@
-	@echo module unload PrgEnv-gnu >> $@
-	@echo module unload PrgEnv-cray >> $@
-	@echo module load gcc/4.9.3 >> $@
+	@echo module purge > $@
 	@echo module load PrgEnv-gnu >> $@
-	@echo module unload netcdf >> $@
-	@echo module load cray-netcdf >> $@
+	@echo export PATH=/u1/uaf/kshedstrom/bin:$PATH >> $@
+#	@echo module unload netcdf >> $@
+#	@echo module load cray-netcdf >> $@
 
 # Canned rule to run all executables
 define build_mom6_executable

@@ -410,9 +410,10 @@ $(BUILD_DIR)/cray/env:
 $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
-	@echo module purge > $@
+	@echo \#\!/bin/bash > $@
+	@echo module purge >> $@
 	@echo module load PrgEnv-gnu >> $@
-	@echo export PATH=/u1/uaf/kshedstrom/bin:$PATH >> $@
+	@echo export PATH=/u1/uaf/kshedstrom/bin:$$PATH >> $@
 #	@echo module unload netcdf >> $@
 #	@echo module load cray-netcdf >> $@
 
@@ -426,7 +427,7 @@ mkdir -p $(dir $@)
 (cd $(dir $@); $(RM) -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
 (cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
 (cd $(dir $@); $(RM) -f MOM6)
-(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
+(cd $(dir $@); . ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
 
 # solo executable
@@ -505,7 +506,7 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	(cd $(dir $@); $(RM) path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -p libfms.a -c '$(CPPDEFS)' path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
-	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
+	(cd $(dir $@); . ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 #(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
 
 # Rules to associated an executable to each experiment #########################

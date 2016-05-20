@@ -41,23 +41,25 @@ LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
 #BGC_SIS2_EXPTS=$(foreach dir,COBALT_OM4_05,bgc_SIS2/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
 #EXPTS+=$(BGC_SIS2_EXPTS)
-EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
+EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS2 symmetric_SIS2 # Executable/model configurations to build
+#EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
 
 # Name of MOM6-examples directory
-MOM6_EXAMPLES=/center/d/kate/ESMG/ESMG-configs
+MOM6_SOURCES=/center/d/kate/ESMG/ESMG-configs
+MOM6_EXAMPLES=/center/d/kate/ESMG/MOM6-examples
 # Name of FMS/shared directory
-FMS=$(MOM6_EXAMPLES)/src/FMS
+FMS=$(MOM6_SOURCES)/src/FMS
 # Name of MOM6 directory
-MOM6=$(MOM6_EXAMPLES)/src/MOM6
+MOM6=$(MOM6_SOURCES)/src/MOM6
 # Location for extras components
-EXTRAS=$(MOM6_EXAMPLES)/src
+EXTRAS=$(MOM6_SOURCES)/src
 # Name of SIS1 directory
 SIS1=$(EXTRAS)/SIS
 # Name of SIS2 directory
-SIS2=$(MOM6_EXAMPLES)/src/SIS2
+SIS2=$(MOM6_SOURCES)/src/SIS2
 # Name of icebergs directory
-ICEBERGS=$(MOM6_EXAMPLES)/src/icebergs
+ICEBERGS=$(MOM6_SOURCES)/src/icebergs
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
@@ -79,7 +81,7 @@ LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
 OCEAN_SHARED=$(EXTRAS)/ocean_shared
 # Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
-ICE_OCEAN_EXTRAS=$(MOM6_EXAMPLES)/src/ice_ocean_extras
+ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=/center/w/kate/MOM6/build
 # MKMF package
@@ -104,6 +106,7 @@ CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSI
 SITE=linux
 # MPIRUN can be aprun or mpirun
 MPIRUN=aprun
+MPIRUN=mpirun
 # MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
 MAKEMODE=NETCDF=4
 #MAKEMODE=NETCDF=3
@@ -128,17 +131,32 @@ PMAKEOPTS=-j
 TIMESTATS=ocean.stats
 STATS_FILES=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 STDERR_LABEL=out
-# .SECONDARY stops deletiong of targets that were built implicitly
+# .SECONDARY stops deletion of targets that were built implicitly
 .SECONDARY:
 
 MV=\mv
 RM=\rm
-SHELL=tcsh
+#SHELL=tcsh
+SHELL=bash
+SETENV=setenv
+SETVAR=set
+SETENVSEP=" "
+SRCENV=source
+ifeq ($(SHELL),bash)
+	SETENV=export
+  SETVAR=export
+	SETENVSEP==
+	SRCENV=.
+endif
+ifeq ($(strip $(cwd)),)
+cwd=$(shell pwd)
+endif
 
 # The "all" target depends on which set of nodes we are on...
 ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
 ALLMESG=On batch nodes: building executables, running experiments
-ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
+ALLTARGS=ale solo symmetric sis2 symmetric_sis2
+#ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
 ALLMESG=On login nodes: building executables, reporting status
 ALLTARGS=$(EXEC_MODE) status
@@ -160,6 +178,7 @@ prod: $(foreach exec,$(EXPT_EXECS),$(BUILD_DIR)/$(exec).$(COMPILER).prod/MOM6)
 ale: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 solo: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 symmetric: $(BUILD_DIR)/$(COMPILER)/symmetric_ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
+symmetric_sis2: $(BUILD_DIR)/$(COMPILER)/symmetric_ice_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 sis: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 sis2: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 am2_sis: $(BUILD_DIR)/$(COMPILER)/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
@@ -236,9 +255,10 @@ force: cleanstats
 cleanstats:
 	$(RM) -f $(STATS_FILES)
 clean:
-	@$(foreach dir,$(wildcard $(BUILD_DIR)/*), (cd $(dir); make clean); )
 	find $(BUILD_DIR)/* -type l -exec $(RM) {} \;
 	find $(BUILD_DIR)/* -name '*.mod' -exec $(RM) {} \;
+	find $(BUILD_DIR)/* -name '*.o' -exec $(RM) {} \;
+#	@$(foreach dir,$(wildcard $(BUILD_DIR)/*/*/*), (cd $(dir); make clean); )
 Clean: clean cleancore
 	-$(RM) -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.nc.*
 	-$(RM) -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.{nc,out}
@@ -411,11 +431,10 @@ $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo \#\!/bin/bash > $@
+	@echo . /usr/share/Modules/init/bash >> $@
 	@echo module purge >> $@
 	@echo module load PrgEnv-gnu >> $@
 	@echo export PATH=/u1/uaf/kshedstrom/bin:$$PATH >> $@
-#	@echo module unload netcdf >> $@
-#	@echo module load cray-netcdf >> $@
 
 # Canned rule to run all executables
 define build_mom6_executable
@@ -427,7 +446,7 @@ mkdir -p $(dir $@)
 (cd $(dir $@); $(RM) -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
 (cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
 (cd $(dir $@); $(RM) -f MOM6)
-(cd $(dir $@); . ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
+(cd $(dir $@); $(SRCENV) ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
 
 # solo executable
@@ -440,6 +459,12 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only/$(mode)/MOM6): $(foreach dir,$
 SOLOSYM_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): SRCPTH=$(SOLOSYM_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): $(foreach dir,$(SOLOSYM_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+	$(build_mom6_executable)
+
+# Symmetric ice_ocean
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS executable
@@ -506,11 +531,11 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	(cd $(dir $@); $(RM) path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -p libfms.a -c '$(CPPDEFS)' path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
-	(cd $(dir $@); . ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
+	(cd $(dir $@); $(SRCENV) ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 #(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
 
-# Rules to associated an executable to each experiment #########################
-# (implemented by makeing the executable the FIRST pre-requisite)
+# Rules to associate an executable to each experiment #########################
+# (implemented by making the executable the FIRST pre-requisite)
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/symmetric_ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/ice_ocean_SIS/$(EXEC_MODE)/MOM6
@@ -773,7 +798,7 @@ define run-model-to-make-$(TIMESTATS)
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 $(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats$(suffix $@),time_stamp.out} $@
-set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
+$(SRCENV) $(BUILD_DIR)/$(COMPILER)/env; $(SETVAR) rdir=$$cwd; (cd $(dir $@); $(SETENV) OMP_NUM_THREADS$(SETENVSEP)1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'

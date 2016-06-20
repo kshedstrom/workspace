@@ -15,7 +15,6 @@ ALE_EXPTS=$(foreach dir, \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma seamount/rho \
           flow_downslope/z flow_downslope/rho flow_downslope/sigma \
-          global_ALE/z global_ALE/hycom \
           mixed_layer_restrat_2d \
           ,ocean_only/$(dir))
 
@@ -24,12 +23,14 @@ SOLO_EXPTS=$(foreach dir, \
           CVmix_SCM_tests/mech_only/BML CVmix_SCM_tests/wind_only/BML \
           CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
           torus_advection_test lock_exchange external_gwave single_column/BML \
-          sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
-          double_gyre DOME benchmark nonBous_global Phillips_2layer \
+          sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer \
+          double_gyre DOME benchmark Phillips_2layer \
           ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
+#ALE_EXPTS+=ocean_only/global_ALE/z ocean_only/global_ALE/hycom
 #ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
+#SOLO_EXPTS+=ocean_only/nonBous_global ocean_only/global_ALE/layer
 #SOLO_EXPTS+=ocean_only/MESO_025_63L
 #SOLO_EXPTS+=ocean_only/tracer_mixing/layer
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
@@ -39,7 +40,8 @@ AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
 #BGC_SIS2_EXPTS=$(foreach dir,COBALT_OM4_05,bgc_SIS2/$(dir))
-EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
+#EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
+EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS)
 #EXPTS+=$(BGC_SIS2_EXPTS)
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS2 symmetric_SIS2 # Executable/model configurations to build
 #EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
@@ -88,7 +90,7 @@ BUILD_DIR=/center/w/kate/MOM6/build
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
 BIN_DIR=$(MKMF_DIR)/bin
-# Location of site templats
+# Location of site templates
 TEMPLATE_DIR=$(MKMF_DIR)/../mkmf.local
 # Relative path from compile directory to top
 #REL_PATH=../../../../..
@@ -112,12 +114,15 @@ MAKEMODE=NETCDF=4
 #MAKEMODE=NETCDF=3
 #MAKEMODE+=OPENMP=1
 MODES=repro prod debug
-COMPILERS=intel pathscale pgi cray gnu
-COMPILERS=gnu pgi
+#COMPILERS=intel pathscale pgi cray gnu
+#COMPILERS=gnu pgi
+COMPILERS=gnu
+COMPILER=gnu
 
 # Version of code
 MOM6_tag=dev/master
 SIS2_tag=dev/master
+#FMS_tag=dev/master
 FMS_tag=ulm_201510
 LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
 
@@ -178,7 +183,7 @@ prod: $(foreach exec,$(EXPT_EXECS),$(BUILD_DIR)/$(exec).$(COMPILER).prod/MOM6)
 ale: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 solo: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 symmetric: $(BUILD_DIR)/$(COMPILER)/symmetric_ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
-symmetric_sis2: $(BUILD_DIR)/$(COMPILER)/symmetric_ice_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
+symmetric_sis2: $(BUILD_DIR)/$(COMPILER)/symmetric_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 sis: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 sis2: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 am2_sis: $(BUILD_DIR)/$(COMPILER)/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
@@ -267,6 +272,8 @@ Clean: clean cleancore
 cleancore:
 	-find $(MOM6_EXAMPLES)/ -name core -type f -exec $(RM) {} \;
 	-find $(MOM6_EXAMPLES)/ -name "*truncations" -type f -exec $(RM) {} \;
+distclean:
+	-$(RM) -fr $(BUILD_DIR)
 backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
 sync:
@@ -357,14 +364,10 @@ envs: $(foreach cmp,$(COMPILERS),$(BUILD_DIR)/$(cmp)/env)
 $(BUILD_DIR)/pgi/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
-	@echo module unload PrgEnv-pgi > $@
-	@echo module unload PrgEnv-pathscale >> $@
-	@echo module unload PrgEnv-intel >> $@
-	@echo module unload PrgEnv-gnu >> $@
-	@echo module unload PrgEnv-cray >> $@
+	@echo . /usr/share/Modules/init/bash >> $@
+	@echo module purge >> $@
 	@echo module load PrgEnv-pgi >> $@
-	@echo module unload netcdf >> $@
-	@echo module load cray-netcdf >> $@
+	@echo module load netcdf/4.3.3.1.pgi-15.7 >> $@
 $(BUILD_DIR)/pathscale/env:
 	mkdir -p $(dir $@)
 	@echo Building $@

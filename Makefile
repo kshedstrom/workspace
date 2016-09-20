@@ -36,13 +36,15 @@ SOLO_EXPTS=$(foreach dir, \
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
+#SIS2_EXPTS+=$(foreach dir,SIS2_bergs_cgrid_1 SIS2_bergs_cgrid_2,ice_ocean_SIS2/$(dir))
+SIS2_EXPTS+=ice_ocean_SIS2/OM4_05
 AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
 #BGC_SIS2_EXPTS=$(foreach dir,COBALT_OM4_05,bgc_SIS2/$(dir))
 #EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
-EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS)
-#EXPTS+=$(BGC_SIS2_EXPTS)
+EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS)
+#EXPTS+=$(SIS2_EXPTS) $(BGC_SIS2_EXPTS)
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS2 symmetric_SIS2 # Executable/model configurations to build
 #EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
@@ -68,8 +70,8 @@ LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
 LM3_MODULES=$(LM3)/land_param $(LM3)/land_lad2_cpp
 # Name of AM2 directory
 AM2=$(EXTRAS)/AM2
-AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared
-AM2_MODULES=$(AM2)/atmos_drivers/coupled $(AM2)/atmos_fv_dynamics/driver/coupled $(AM2)/atmos_fv_dynamics/model $(AM2)/atmos_fv_dynamics/tools $(AM2)/atmos_shared $(ATMOS_PARAM)
+AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared_am3
+AM2_MODULES=$(AM2)/atmos_drivers/coupled $(AM2)/atmos_fv_dynamics/driver/coupled $(AM2)/atmos_fv_dynamics/model $(AM2)/atmos_fv_dynamics/tools $(AM2)/atmos_shared_am3 $(ATMOS_PARAM)
 # Name of coupler directory
 COUPLER=$(EXTRAS)/coupler
 # Name of coupler directory
@@ -77,7 +79,7 @@ ICE_PARAM=$(EXTRAS)/ice_param
 # Name of atmos_null directory
 ATMOS_NULL=$(EXTRAS)/atmos_null
 # Name of atmos_param directory
-ATMOS_PARAM=$(EXTRAS)/atmos_param
+ATMOS_PARAM=$(EXTRAS)/atmos_param_am3
 # Name of land_null directory
 LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
@@ -94,6 +96,8 @@ BIN_DIR=$(MKMF_DIR)/bin
 TEMPLATE_DIR=$(MKMF_DIR)/../mkmf.local
 # Relative path from compile directory to top
 #REL_PATH=../../../../..
+# A path for installing the input datasets (not used in development)
+DATASETS=datasets
 
 #CPPDEFS="-Duse_libMPI -Duse_netCDF -Duse_LARGEFILE -DSPMD -Duse_shared_pointers -Duse_SGI_GSM -DLAND_BND_TRACERS"
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
@@ -104,6 +108,7 @@ STATS_PLATFORM=
 STATS_COMPILER_VER=
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\"'
 CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\" -DMAXFIELDMETHODS_=500
+CPPDEFS+=-Duse_AM3_physics
 # SITE can be ncrc, hpcs, doe, linux, fish
 SITE=linux
 # MPIRUN can be aprun or mpirun
@@ -129,7 +134,7 @@ LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
 # Default compiler configuration
 EXEC_MODE=repro
 TEMPLATE=$(TEMPLATE_DIR)/$(SITE)-$(COMPILER).mk
-NPES=2
+#NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
 
@@ -164,13 +169,13 @@ ALLTARGS=ale solo symmetric sis2 symmetric_sis2
 #ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
 ALLMESG=On login nodes: building executables, reporting status
-ALLTARGS=$(EXEC_MODE) status
+ALLTARGS=$(EXEC_MODE)
 endif
-all:
-	@echo HOST = $(HOST)
-	@echo $(ALLMESG)
-	@echo targets = $(ALLTARGS)
-	@time make $(ALLTARGS)
+all: $(ALLTARGS)
+#	@echo HOST = $(HOST)
+#	@echo $(ALLMESG)
+#	@echo targets = $(ALLTARGS)
+#	@time make $(ALLTARGS)
 ALL:
 	make gnu
 	make intel
@@ -217,7 +222,7 @@ gnu: $(BUILD_DIR)/gnu/env
 help:
 	@echo 'Typical targets:'
 	@echo ' make help     - this message'
-	@echo ' make checkout - checkout source code                     ** LOGIN nodes only **'
+	@echo ' make clone    - clone source code                     ** LOGIN nodes only **'
 	@echo ' make buildall - compile executables for each of the configurations'
 	@echo '                 listed in the MODES variable'
 	@echo
@@ -289,8 +294,13 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); cmake -G "Unix Makefiles" .)
 	(cd $(@); make)
 
-# This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR) $(MOM6_EXAMPLES)/.datasets
+# This section defines how to clone and layout the source code
+GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB=git@github.com:# This uses the authenticated SSH protocol
+clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
+clone_minimal: $(MOM6_EXAMPLES)/.datasets
+clone_http:
+	make GITHUB="https://github.com/" clone
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -300,21 +310,18 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
-checkout_minimal:
-	git clone git@github.com:adcroft/MOM6-examples.git
+$(MOM6_EXAMPLES) $(FMS) (SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
+	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES); git submodule init)
-	(cd $(MOM6_EXAMPLES); git submodule update src/FMS)
-	(cd $(MOM6_EXAMPLES); git submodule update src/MOM6)
-	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule init)
-	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule update)
-	(cd $(MOM6_EXAMPLES); git submodule update src/mkmf)
-$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
-	(cd $(MOM6_EXAMPLES); git submodule init)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/FMS FMS)
+	(cd $(MOM6_EXAMPLES)/src; git clone --recursive $(GITHUB)NOAA-GFDL/MOM6 MOM6)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/SIS2 SIS2)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/icebergs icebergs)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/coupler coupler)
 	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
-$(EXTRAS) $(AM2) $(LM3):
+$(EXTRAS) $(AM2) $(LM3): | $(MOM6_EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
@@ -334,20 +341,28 @@ cppLM3: $(LM3_REPOS)
 	find $(LM3)/land_lad2 -type f -name \*.f90 -exec mv {} $(LM3)/land_lad2_cpp/ \;
 #	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 $(AM2_REPOS): | $(AM2)
-$(BIN_DIR) $(TEMPLATE_DIR): $(MKMF_DIR)
-$(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets
+$(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets | $(MOM6_EXAMPLES)
 	(cd $(@D); ln -s $< $(@F))
+construct_datasets: $(foreach dir,AM2_LM3_MOM6i_1deg CM2G63L CORE global GOLD_SIS_025 GOLD_SIS MESO_025_23L MESO_025_63L MOM6_SIS_icebergs obs OM4_025 OM4_05 OM4_360x320_C180,$(DATASETS)/$(dir))
+	(cd $(MOM6_EXAMPLES); ln -s ../$(DATASETS) .datasets)
+$(DATASETS):
+	mkdir -p $(DATASETS)
+$(DATASETS)/%: $(DATASETS)/%.tgz
+	(cd $(@D); tar vxf $(<F))
+$(DATASETS)/%.tgz: | $(DATASETS)
+	(cd $(@D); wget ftp://ftp.gfdl.noaa.gov/pub/aja/datasets/$(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
-	git clone git@github.com:NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
 wiki.MOM6:
-	git clone git@github.com:NOAA-GFDL/MOM6.wiki.git wiki.MOM6
+	git clone $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
 $(BUILD_DIR)/gnu/%/MOM6 $(BUILD_DIR)/gnu/%/libfms.a: COMPILER=gnu
 $(BUILD_DIR)/intel/%/MOM6 $(BUILD_DIR)/intel/%/libfms.a: COMPILER=intel
 $(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
+$(BUILD_DIR)/cray/%/MOM6 $(BUILD_DIR)/cray/%/libfms.a: COMPILER=cray
 # Set REPRO and DEBUG variables based on the build directory
 %/prod/MOM6 %/prod/libfms.a: EXEC_MODE=prod
 %/repro/MOM6 %/repro/libfms.a: EXEC_MODE=repro
@@ -358,6 +373,7 @@ $(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
 $(foreach mode,$(MODES),$(BUILD_DIR)/gnu/shared/$(mode)/libfms.a): $(BUILD_DIR)/gnu/env
 $(foreach mode,$(MODES),$(BUILD_DIR)/intel/shared/$(mode)/libfms.a): $(BUILD_DIR)/intel/env
 $(foreach mode,$(MODES),$(BUILD_DIR)/pgi/shared/$(mode)/libfms.a): $(BUILD_DIR)/pgi/env
+$(foreach mode,$(MODES),$(BUILD_DIR)/cray/shared/$(mode)/libfms.a): $(BUILD_DIR)/cray/env
 
 # Create module scripts
 envs: $(foreach cmp,$(COMPILERS),$(BUILD_DIR)/$(cmp)/env)
@@ -447,7 +463,7 @@ define build_mom6_executable
 @echo EXEC_MODE=$(EXEC_MODE)
 mkdir -p $(dir $@)
 (cd $(dir $@); $(RM) -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
-(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
+(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p MOM6 -l '-L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
 (cd $(dir $@); $(RM) -f MOM6)
 (cd $(dir $@); $(SRCENV) ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
@@ -482,6 +498,12 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SI
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
+# SIS2 executable
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+	$(build_mom6_executable)
+
 # AM2+LM3+SIS executable
 AM2_LM3_SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS1) $(LM3_MODULES) $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS_PTH)
@@ -514,7 +536,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): $(fore
 	$(build_mom6_executable)
 
 # Static global executable
-STATIC_GLOBAL_PTH=$(MOM6)/examples/ocean_only/global $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
+STATIC_GLOBAL_PTH=$(MOM6_EXAMPLES)/ocean_only/global $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/STATIC_global/$(mode)/MOM6): SRCPTH=$(STATIC_GLOBAL_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/STATIC_global/$(mode)/MOM6): $(foreach dir,$(STATIC_GLOBAL_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -535,7 +557,7 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -p libfms.a -c '$(CPPDEFS)' path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
 	(cd $(dir $@); $(SRCENV) ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
-#(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
+#	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 
 # Rules to associate an executable to each experiment #########################
 # (implemented by making the executable the FIRST pre-requisite)
@@ -741,9 +763,6 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/MOM6z_SIS_025/$(TIMEST
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(TIMESTATS).$(cmp)): NPES=254
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ice_ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/$(TIMESTATS).$(cmp)): NPES=480
-$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/$(fl))
-
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/Baltic/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/Baltic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/Baltic/$(fl))
 
@@ -771,9 +790,19 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_cgrid/$(TIMESTAT
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(TIMESTATS).$(cmp)): NPES=60
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).$(cmp)): NPES=60
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).$(cmp)): NPES=60
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).gnu: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).gnu
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).intel: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).intel
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).pgi: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).pgi
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(TIMESTATS).$(cmp)): NPES=512
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_05/$(TIMESTATS).$(cmp)): NPES=128
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_05/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_05/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_025/$(TIMESTATS).$(cmp)): NPES=480
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_025/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/OM4_025/$(fl))
@@ -798,12 +827,12 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)
-echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
+@echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 $(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats$(suffix $@),time_stamp.out} $@
 $(SRCENV) $(BUILD_DIR)/$(COMPILER)/env; $(SETVAR) rdir=$$cwd; (cd $(dir $@); $(SETENV) OMP_NUM_THREADS$(SETENVSEP)1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
+#set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std$(suffix $@).out) |& tee stderr.$(STDERR_LABEL) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
-@$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 endef

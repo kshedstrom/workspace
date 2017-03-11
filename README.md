@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/adcroft/workspace.svg?branch=master)](https://travis-ci.org/adcroft/workspace)
+
 # workspace
 
 **This Makefile is not part of MOM6, it is not supported, I do not recommend that anyone use it, and I will not respond to pleas for help regards this Makefile.** --The Managment.
@@ -64,7 +66,7 @@ git status
 
 Obtain the Makefile:
 ```bash
-git clone git@github.com:adcroft-gfdl/workspace.git workspace
+git clone git@github.com:adcroft/workspace.git workspace
 ```
 
 Clone source code:

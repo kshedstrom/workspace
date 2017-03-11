@@ -33,7 +33,7 @@ SOLO_EXPTS=$(foreach dir, \
           double_gyre DOME benchmark Phillips_2layer \
           ,ocean_only/$(dir))
 
-ESMG_EXPTS=ocean_only/Tidal_bay ocean_only/Supercritical
+ESMG_EXPTS=ocean_only/Tidal_bay ocean_only/Supercritical ocean_only/Channel
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
 #ALE_EXPTS+=ocean_only/global_ALE/z ocean_only/global_ALE/hycom
@@ -42,6 +42,7 @@ ESMG_EXPTS=ocean_only/Tidal_bay ocean_only/Supercritical
 #SOLO_EXPTS+=ocean_only/MESO_025_63L
 #SOLO_EXPTS+=ocean_only/tracer_mixing/layer
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
+#SYMMETRIC_EXPTS=ocean_only/circle_obcs ocean_only/DOME
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2_bergs_cgrid_1 SIS2_bergs_cgrid_2,ice_ocean_SIS2/$(dir))
@@ -131,11 +132,13 @@ COMPILERS=gnu
 COMPILER=gnu
 
 # Version of code
+MOM6_EXAMPLES_tag=dev/master
 MOM6_tag=dev/master
 SIS2_tag=dev/master
 #FMS_tag=dev/master
 FMS_tag=ulm_201510
 LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
+ICEBERGS_tag=dev/master
 
 # Default compiler configuration
 EXEC_MODE=repro
@@ -457,9 +460,9 @@ $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo \#\!/bin/bash > $@
-	@echo . /usr/share/Modules/init/bash >> $@
-	@echo module purge >> $@
-	@echo module load PrgEnv-gnu >> $@
+#	@echo . /usr/share/Modules/init/bash >> $@
+#	@echo module purge >> $@
+#	@echo module load PrgEnv-gnu >> $@
 	@echo export PATH=/u1/uaf/kshedstrom/bin:$$PATH >> $@
 
 # Canned rule to run all executables
@@ -835,8 +838,11 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(TIMESTATS).$(cmp)): NPES=432
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Supercritical/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))

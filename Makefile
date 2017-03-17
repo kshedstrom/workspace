@@ -33,7 +33,10 @@ SOLO_EXPTS=$(foreach dir, \
           double_gyre DOME benchmark Phillips_2layer \
           ,ocean_only/$(dir))
 
-ESMG_EXPTS=ocean_only/Tidal_bay ocean_only/Supercritical ocean_only/Channel
+ESMG_EXPTS=$(foreach dir, \
+          Tidal_bay Supercritical Channel \
+          seamount/z seamount/sigma seamount/rho seamount/layer \
+	  ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
 #ALE_EXPTS+=ocean_only/global_ALE/z ocean_only/global_ALE/hycom
@@ -846,6 +849,12 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/%/$(TIMESTATS).$(cmp)): NPES=4
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/layer/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/z/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/sigma/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/rho/$(fl))
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)

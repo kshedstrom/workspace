@@ -1,8 +1,8 @@
 # This is a hacked up copy of the Makefile from https://github.com/adcroft/workspace
 #
 # Name of MOM6-examples directories - sources are under the former.
-MOM6_SOURCES=/center/d/kate/ESMG/ESMG-configs
-MOM6_EXAMPLES=/center/d/kate/ESMG/MOM6-examples
+MOM6_SOURCES=/center1/d/kate/ESMG/ESMG-configs
+MOM6_EXAMPLES=/center1/d/kate/ESMG/MOM6-examples
 
 # ALE_EXPTS and SOLO_EXPTS are ocean-only experiments using the ocean_only executable.
 # SIS_EXPTS use the ice_ocean_SIS executable.
@@ -34,7 +34,8 @@ SOLO_EXPTS=$(foreach dir, \
           ,ocean_only/$(dir))
 
 ESMG_EXPTS=$(foreach dir, \
-          Tidal_bay Supercritical Channel \
+          Tidal_bay Supercritical Channel Kelvin_wave/barotropic \
+	  Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
           seamount/z seamount/sigma seamount/rho seamount/layer \
 	  ,ocean_only/$(dir))
 
@@ -97,7 +98,7 @@ OCEAN_SHARED=$(EXTRAS)/ocean_shared
 # Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
 ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
-BUILD_DIR=/center/w/kate/MOM6/build
+BUILD_DIR=/center1/w/kate/MOM6/build
 # MKMF package
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
@@ -847,8 +848,14 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS)
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=6
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/rotate_BT/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/rotate_BT/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/rotate45_BT/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/rotate45_BT/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/layer/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/%/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/layer/$(fl))

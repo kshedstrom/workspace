@@ -37,6 +37,7 @@ ESMG_EXPTS=$(foreach dir, \
           Tidal_bay Supercritical Channel Kelvin_wave/barotropic \
 	  Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
           seamount/z seamount/sigma seamount/rho seamount/layer \
+	  shelfwave \
 	  ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
@@ -848,8 +849,11 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS)
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=6
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/shelfwave/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/shelfwave/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/shelfwave/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/%/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(fl))

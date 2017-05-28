@@ -99,7 +99,7 @@ OCEAN_SHARED=$(EXTRAS)/ocean_shared
 # Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
 ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
-BUILD_DIR=/center1/w/kate/MOM6/build
+BUILD_DIR=/center1/w/kshedstrom/MOM6/build
 # MKMF package
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts

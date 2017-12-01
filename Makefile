@@ -1,8 +1,8 @@
 # This is a hacked up copy of the Makefile from https://github.com/adcroft/workspace
 #
 # Name of MOM6-examples directories - sources are under the former.
-MOM6_SOURCES=/center1/d/kate/ESMG/ESMG-configs
-MOM6_EXAMPLES=/center1/d/kate/ESMG/MOM6-examples
+MOM6_SOURCES=/import/c1/AKWATERS/kate/ESMG/ESMG-configs
+MOM6_EXAMPLES=/import/c1/AKWATERS/kate/ESMG/MOM6-examples
 
 # ALE_EXPTS and SOLO_EXPTS are ocean-only experiments using the ocean_only executable.
 # SIS_EXPTS use the ice_ocean_SIS executable.
@@ -34,10 +34,12 @@ SOLO_EXPTS=$(foreach dir, \
           ,ocean_only/$(dir))
 
 ESMG_EXPTS=$(foreach dir, \
-          Tidal_bay Supercritical Channel Kelvin_wave/barotropic \
+          Tidal_bay Supercritical Channel/plain Channel/beta Channel/sloshing \
+	  Channel/sloshing-beta Kelvin_wave/barotropic \
 	  Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
           seamount/z seamount/sigma seamount/rho seamount/layer \
-	  shelfwave \
+          rotated_seamount/z rotated_seamount/sigma rotated_seamount/layer \
+	  rotated_seamount/faulty shelfwave dyed_obcs \
 	  ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
@@ -99,7 +101,7 @@ OCEAN_SHARED=$(EXTRAS)/ocean_shared
 # Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
 ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
-BUILD_DIR=/center1/w/kshedstrom/MOM6/build
+BUILD_DIR=/import/c1/AKWATERS/kshedstrom/MOM6/build
 # MKMF package
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
@@ -121,6 +123,7 @@ STATS_COMPILER_VER=
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\"'
 CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\" -DMAXFIELDMETHODS_=500
 CPPDEFS+=-Duse_AM3_physics
+CPPDEFS+=-D_USE_LEGACY_LAND_
 # SITE can be ncrc, hpcs, doe, linux, fish
 SITE=linux
 # MPIRUN can be aprun or mpirun
@@ -846,14 +849,20 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Supercritical/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): NPES=2
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/plain/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/plain/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/beta/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/sloshing/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/sloshing/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/sloshing-beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/sloshing-beta/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/shelfwave/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/shelfwave/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/shelfwave/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/%/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(fl))
@@ -866,6 +875,13 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/layer/$(TIMESTATS
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/z/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/sigma/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/seamount/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/seamount/rho/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/%/$(TIMESTATS).$(cmp)): NPES=4
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/layer/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/z/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/sigma/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/rho/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/faulty/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/faulty/$(fl))
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)

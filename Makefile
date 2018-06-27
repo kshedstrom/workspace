@@ -34,12 +34,15 @@ SOLO_EXPTS=$(foreach dir, \
           ,ocean_only/$(dir))
 
 ESMG_EXPTS=$(foreach dir, \
-          Tidal_bay Supercritical Channel/plain Channel/beta Channel/sloshing \
-	  Channel/sloshing-beta Kelvin_wave/barotropic \
+          Tidal_bay Supercritical channel/plain channel/beta channel/sloshing \
+	  channel/sloshing-beta Kelvin_wave/barotropic \
 	  Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
           seamount/z seamount/sigma seamount/rho seamount/layer \
           rotated_seamount/z rotated_seamount/sigma rotated_seamount/layer \
 	  shelfwave dyed_obcs dumbbell/z dumbbell/z_sub dumbbell/z_sub_clamp \
+	  Chapman_coast/longshore_winds Chapman_coast/crossshore_winds \
+	  Chapman_coast/slump Chapman_coast/per_longshore \
+	  Chapman_coast/tall_slump Chapman_coast/per_crossshore \
 	  rotated_seamount/faulty \
 	  ,ocean_only/$(dir))
 
@@ -471,7 +474,7 @@ $(BUILD_DIR)/gnu/env:
 #	@echo . /usr/share/Modules/init/bash >> $@
 #	@echo module purge >> $@
 #	@echo module load PrgEnv-gnu >> $@
-	@echo export PATH=/u1/uaf/kshedstrom/bin:$$PATH >> $@
+	@echo export PATH=/home/kshedstrom/bin:$$PATH >> $@
 
 # Canned rule to run all executables
 define build_mom6_executable
@@ -849,11 +852,11 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Supercritical/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Supercritical/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/%/$(TIMESTATS).$(cmp)): NPES=2
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/plain/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/plain/$(fl))
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/beta/$(fl))
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/sloshing/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/sloshing/$(fl))
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Channel/sloshing-beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Channel/sloshing-beta/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/channel/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/channel/plain/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/channel/plain/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/channel/beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/channel/beta/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/channel/sloshing/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/channel/sloshing/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/channel/sloshing-beta/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/channel/sloshing-beta/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Tidal_bay/$(fl))
@@ -864,10 +867,18 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/shelfwave/$(TIMESTATS).$(c
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dyed_obcs/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/%/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_clamp/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_clamp/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/%/$(TIMESTATS).$(cmp)): NPES=4
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/longshore_winds/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/longshore_winds/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/crossshore_winds/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/crossshore_winds/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/slump/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/slump/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_longshore/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_longshore/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_crossshore/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_crossshore/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/tall_slump/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/tall_slump/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/%/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(fl))

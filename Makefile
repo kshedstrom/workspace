@@ -42,7 +42,8 @@ ESMG_EXPTS=$(foreach dir, \
 	  shelfwave dyed_obcs dumbbell/z dumbbell/z_sub dumbbell/z_sub_clamp \
 	  Chapman_coast/longshore_winds Chapman_coast/crossshore_winds \
 	  Chapman_coast/slump Chapman_coast/per_longshore \
-	  Chapman_coast/tall_slump Chapman_coast/per_crossshore \
+	  Chapman_coast/tall_slump Chapman_coast/per_crossshore Chapman_coast/per_overlap \
+	  Chapman_coast/per_gap1 Chapman_coast/per_gap2 Chapman_coast/per_gap3 \
 	  rotated_seamount/faulty \
 	  ,ocean_only/$(dir))
 
@@ -879,6 +880,10 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/slump/$(TIME
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_longshore/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_longshore/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_crossshore/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_crossshore/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/tall_slump/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/tall_slump/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_overlap/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_overlap/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap1/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap1/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap2/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap2/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap3/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/per_gap3/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/%/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Kelvin_wave/barotropic/$(fl))

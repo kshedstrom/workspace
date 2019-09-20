@@ -30,7 +30,7 @@ SOLO_EXPTS=$(foreach dir, \
           CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
           torus_advection_test lock_exchange external_gwave single_column/BML \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer \
-          double_gyre DOME benchmark Phillips_2layer \
+          double_gyre DOME Phillips_2layer \
           ,ocean_only/$(dir))
 
 ESMG_EXPTS=$(foreach dir, \
@@ -44,14 +44,15 @@ ESMG_EXPTS=$(foreach dir, \
 	  Chapman_coast/slump Chapman_coast/per_longshore \
 	  Chapman_coast/tall_slump Chapman_coast/per_crossshore Chapman_coast/per_overlap \
 	  Chapman_coast/per_gap1 Chapman_coast/per_gap2 Chapman_coast/per_gap3 \
-	  rotated_seamount/faulty \
+	  Rossby_soliton/open Rossby_soliton/reentrant \
+	  rotated_seamount/fail_2 rotated_seamount/faulty \
 	  ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
 #ALE_EXPTS+=ocean_only/global_ALE/z ocean_only/global_ALE/hycom
 #ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
 #SOLO_EXPTS+=ocean_only/nonBous_global ocean_only/global_ALE/layer
-#SOLO_EXPTS+=ocean_only/MESO_025_63L
+#SOLO_EXPTS+=ocean_only/MESO_025_63L ocean_only/benchmark
 #SOLO_EXPTS+=ocean_only/tracer_mixing/layer
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
 #SYMMETRIC_EXPTS=ocean_only/circle_obcs ocean_only/DOME
@@ -103,8 +104,6 @@ ATMOS_PARAM=$(EXTRAS)/atmos_param_am3
 LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
 OCEAN_SHARED=$(EXTRAS)/ocean_shared
-# Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
-ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=/import/c1/AKWATERS/kshedstrom/MOM6/build
 # MKMF package
@@ -503,25 +502,25 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): $(for
 	$(build_mom6_executable)
 
 # Symmetric ice_ocean
-SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS executable
-SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS1) $(FMS)/coupler $(FMS)/include
+SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS1) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS/$(mode)/MOM6): SRCPTH=$(SIS_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS/$(mode)/MOM6): $(foreach dir,$(SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS2 executable
-SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS2 executable
-SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -539,13 +538,13 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(for
 	$(build_mom6_executable)
 
 # LM3+SIS2 executable
-LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_OCEAN_EXTRAS) $(SIS2) $(ICEBERGS) $(LM3_MODULES) $(FMS)/coupler $(FMS)/include
+LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_PARAM) $(SIS2) $(ICEBERGS) $(LM3_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_LM3_SIS2/$(mode)/MOM6): SRCPTH=$(LM3_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.f90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # BGC+SIS2 executable
-BGC_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_OCEAN_EXTRAS) $(SIS2) $(ICEBERGS) $(LAND_NULL) $(OCEAN_SHARED) $(FMS)/coupler $(FMS)/include
+BGC_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_PARAM) $(SIS2) $(ICEBERGS) $(LAND_NULL) $(OCEAN_SHARED) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/bgc_SIS2/$(mode)/MOM6): SRCPTH=$(BGC_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/bgc_SIS2/$(mode)/MOM6): CPPDEFS+=-D_USE_GENERIC_TRACER
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/bgc_SIS2/$(mode)/MOM6): $(foreach dir,$(BGC_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.f90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
@@ -635,7 +634,7 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/double_gyre/$(TIMESTATS).
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/DOME/$(TIMESTATS).$(cmp)): NPES=6
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/DOME/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/DOME/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/benchmark/$(TIMESTATS).$(cmp)): NPES=24
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/benchmark/$(TIMESTATS).$(cmp)): NPES=8
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/benchmark/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/benchmark/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/BML/$(TIMESTATS).$(cmp)): NPES=1
@@ -764,7 +763,7 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/global_ALE/SLight/$(TIMES
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/nonBous_global/$(TIMESTATS).$(cmp)): NPES=64
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/nonBous_global/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/nonBous_global/$(fl))
 
-$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/Phillips_2layer/$(TIMESTATS).$(cmp)): NPES=24
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/Phillips_2layer/$(TIMESTATS).$(cmp)): NPES=8
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/Phillips_2layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/Phillips_2layer/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/MESO_025_23L/$(TIMESTATS).$(cmp)): NPES=288
@@ -903,12 +902,17 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/z/$(TIMES
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/sigma/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/rho/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/faulty/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/faulty/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/rotated_seamount/fail_2/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/rotated_seamount/fail_2/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/resting_seamount/%/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/resting_seamount/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/resting_seamount/layer/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/resting_seamount/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/resting_seamount/z/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/resting_seamount/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/resting_seamount/sigma/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/resting_seamount/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/resting_seamount/rho/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Rossby_soliton/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Rossby_soliton/open/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Rossby_soliton/open/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Rossby_soliton/reentrant/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Rossby_soliton/reentrant/$(fl))
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)

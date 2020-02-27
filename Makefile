@@ -35,18 +35,20 @@ SOLO_EXPTS=$(foreach dir, \
 
 ESMG_EXPTS=$(foreach dir, \
           Tidal_bay Supercritical channel/plain channel/beta channel/sloshing \
-	  channel/sloshing-beta Kelvin_wave/barotropic \
-	  Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
+          channel/sloshing-beta Kelvin_wave/barotropic \
+          Kelvin_wave/rotate_BT Kelvin_wave/rotate45_BT Kelvin_wave/layer \
           seamount/z seamount/sigma seamount/rho seamount/layer \
           rotated_seamount/z rotated_seamount/sigma rotated_seamount/layer \
-	  shelfwave dyed_obcs dumbbell/z dumbbell/z_sub dumbbell/z_sub_clamp \
-	  Chapman_coast/longshore_winds Chapman_coast/crossshore_winds \
-	  Chapman_coast/slump Chapman_coast/per_longshore \
-	  Chapman_coast/tall_slump Chapman_coast/per_crossshore Chapman_coast/per_overlap \
-	  Chapman_coast/per_gap1 Chapman_coast/per_gap2 Chapman_coast/per_gap3 \
-	  Rossby_soliton/open Rossby_soliton/reentrant \
-	  rotated_seamount/fail_2 rotated_seamount/faulty \
-	  ,ocean_only/$(dir))
+          shelfwave dyed_obcs dumbbell/z dumbbell/z_sub dumbbell/z_sub_clamp \
+          dumbbell/z_sub_short dumbbell/z_sub_restart dumbbell/z_rotate \
+          dumbbell/z_sub_rotate dumbbell/z_clamp_rotate \
+          Chapman_coast/longshore_winds Chapman_coast/crossshore_winds \
+          Chapman_coast/slump Chapman_coast/per_longshore \
+          Chapman_coast/tall_slump Chapman_coast/per_crossshore Chapman_coast/per_overlap \
+          Chapman_coast/per_gap1 Chapman_coast/per_gap2 Chapman_coast/per_gap3 \
+          Rossby_soliton/open Rossby_soliton/reentrant \
+          rotated_seamount/fail_2 rotated_seamount/faulty \
+          ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
 #ALE_EXPTS+=ocean_only/global_ALE/z ocean_only/global_ALE/hycom
@@ -871,6 +873,11 @@ $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/%/$(TIMESTATS).$(
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_clamp/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_clamp/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_short/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_short/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_restart/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_restart/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_rotate/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_rotate/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_rotate/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_sub_rotate/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/dumbbell/z_clamp_rotate/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/dumbbell/z_clamp_rotate/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/%/$(TIMESTATS).$(cmp)): NPES=4
 $(foreach cmp,$(COMPILERS),$(MOM6_SOURCES)/ocean_only/Chapman_coast/longshore_winds/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_SOURCES)/ocean_only/Chapman_coast/longshore_winds/$(fl))

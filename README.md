@@ -10,7 +10,7 @@ This repository provides a "Makefile" that does pretty much everything I need to
 
 ## To obtain Makefile:
 ```bash
-git clone git@github.com:adcroft-gfdl/workspace.git workspace
+git clone git@github.com:adcroft/workspace.git workspace
 ```
 
 ## Installation
@@ -19,17 +19,21 @@ To clone code and tools (from within the `workspace` directory):
 ```bash
 make clone
 ```
+or if you are inside GFDL's firewall you can
+```bash
+make clone_dev
+```
 
 ## Compilation
 
 To compile all executables (from within the `workspace` directory):
 ```bash
-make gnu
-make intel
-make pgi
+make gnu -j
+make intel -j
+make pgi -j
 ```
 
-To compile a specific executable (from within the `workspace` directory): 
+To compile a specific executable (from within the `workspace` directory):
 ```bash
 make MOM6-examples/build/gnu/ocean_only/repro/MOM6
 ```
@@ -66,7 +70,7 @@ git status
 
 Obtain the Makefile:
 ```bash
-git clone git@github.com:adcroft/workspace.git workspace
+git clone git@github.com:adcroft-gfdl/workspace.git workspace
 ```
 
 Clone source code:
@@ -90,3 +94,6 @@ Compile and run in one step:
 source MOM6-examples/build/intel/env
 make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/ocean.stats.intel
 ```
+
+Compile with openMP:
+make BUILD_DIR=MOM6-examples/build-OPENMP MAKEMODE="OPENMP=1 NETCDF=3" MOM6-examples/build-OPENMP/intel/ice_ocean_SIS2/repro/MOM6

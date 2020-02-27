@@ -25,6 +25,7 @@ ALE_EXPTS=$(foreach dir, \
           ,ocean_only/$(dir))
 
 SOLO_EXPTS=$(foreach dir, \
+          unit_tests \
           resting/layer \
           CVmix_SCM_tests/mech_only/BML CVmix_SCM_tests/wind_only/BML \
           CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
@@ -59,20 +60,28 @@ ESMG_EXPTS=$(foreach dir, \
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
 #SYMMETRIC_EXPTS=ocean_only/circle_obcs ocean_only/DOME
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
-#SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2_bergs_cgrid_1 SIS2_bergs_cgrid_2,ice_ocean_SIS2/$(dir))
+SIS2_EXPTS+=ice_ocean_SIS2/Baltic_ALE_z_offline_tracers
 SIS2_EXPTS+=ice_ocean_SIS2/OM4_05
 AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
 #BGC_SIS2_EXPTS=$(foreach dir,COBALT_OM4_05,bgc_SIS2/$(dir))
 #EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
+#EXPTS+=$(BGC_SIS2_EXPTS)
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS)
 EXPTS+=$(ESMG_EXPTS)
 #EXPTS+=$(BGC_SIS2_EXPTS) $(SIS2_EXPTS)
 EXPT_EXECS=ocean_only symmetric_ocean_only symmetric_SIS2 # Executable/model configurations to build
 #EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
+
+# Experiments to test when using EXAMPLES=ESMG-configs
+ESMG_EXPTS=CCS1
+
+# Protocols for Github
+GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB_SSH=git@github.com:# This uses the authenticated SSH protocol
 
 # Name of FMS/shared directory
 FMS=$(MOM6_SOURCES)/src/FMS
@@ -81,11 +90,14 @@ MOM6=$(MOM6_SOURCES)/src/MOM6
 # Location for extras components
 EXTRAS=$(MOM6_SOURCES)/src
 # Name of SIS1 directory
-SIS1=$(EXTRAS)/SIS
+SIS1=$(EXTRAS)/sis1
+SIS1_tag=SIS2_interface_rwh
 # Name of SIS2 directory
 SIS2=$(MOM6_SOURCES)/src/SIS2
+SIS2_FORK=ESMG
 # Name of icebergs directory
 ICEBERGS=$(MOM6_SOURCES)/src/icebergs
+ICEBERGS_FORK=NOAA-GFDL
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
@@ -106,6 +118,8 @@ ATMOS_PARAM=$(EXTRAS)/atmos_param_am3
 LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
 OCEAN_SHARED=$(EXTRAS)/ocean_shared
+# Name of ice_ocean_extras directory (which is in $(MOM6_SOURCES) and is not a module)
+ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=/import/c1/AKWATERS/kshedstrom/MOM6/build
 # MKMF package
@@ -130,7 +144,9 @@ CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERS
 CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\" -DMAXFIELDMETHODS_=500
 CPPDEFS+=-Duse_AM3_physics
 CPPDEFS+=-D_USE_LEGACY_LAND_
-# SITE can be ncrc, hpcs, doe, linux, fish
+#%/ice_ocean_SIS/repro/MOM6: CPPDEFS+=-D_USE_LEGACY_LAND_
+#%/ice_ocean_SIS2/repro/MOM6: CPPDEFS+=-D_USE_LEGACY_LAND_
+# SITE can be ncrc, hpcs, doe, linux
 SITE=linux
 # MPIRUN can be aprun or mpirun
 #MPIRUN=aprun
@@ -145,13 +161,12 @@ COMPILERS=gnu
 COMPILER=gnu
 
 # Version of code
-MOM6_EXAMPLES_tag=dev/master
-MOM6_tag=dev/master
-SIS2_tag=dev/master
-#FMS_tag=dev/master
-FMS_tag=ulm_201510
-LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
-ICEBERGS_tag=dev/master
+MOM6_EXAMPLES_tag=dev/esmg
+MOM6_tag=dev/esmg
+SIS2_tag=dev/esmg
+FMS_tag=warsaw
+LM3_tag=verona_201701
+ICEBERGS_tag=dev/gfdl
 
 # Default compiler configuration
 EXEC_MODE=repro
@@ -309,6 +324,7 @@ sync:
 sync_stats:
 	rsync -rvim --include=\*/ --include=ocean.stats.\*.nc --exclude=\* MOM6-examples/{ocean_only,ice_ocean_SIS*,coupled_AM2_LM3_SIS*,land*} Alistair.Adcroft@gfdl:/local2/home/workspace/MOM6-examples/
 doxMOM6: MOM6-examples/src/MOM6/doxygen
+#$(MOM6)/html/index.html: $(MOM6)/ $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/* $(MOM6)/doxygen/bin/doxygen
 	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
 MOM6-examples/src/MOM6/html/index.html: MOM6-examples/src/MOM6/doxygen $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/*
 	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
@@ -318,6 +334,28 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to clone and layout the source code
+# Haven't converted this chunk yet...
+#clone: $(REGRESSIONS)
+#clone_dev: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(EXAMPLES)/.datasets
+##	@make dev_urls dev_tags
+#dev_urls: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
+#	(cd $(EXAMPLES); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+#	(cd $(MOM6); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+#	(cd $(SIS2); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+#	(cd $(ICEBERGS); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+#dev_tags: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
+#	(cd $(EXAMPLES); $(GIT_CHECKOUT) $(EXAMPLES_tag))
+#	(cd $(EXAMPLES)/src/MOM6; $(GIT_CHECKOUT) $(MOM6_tag))
+#	(cd $(EXAMPLES)/src/SIS2; $(GIT_CHECKOUT) $(SIS2_tag))
+#	(cd $(EXAMPLES)/src/icebergs; $(GIT_CHECKOUT) $(ICEBERGS_tag))
+#dev_pull:
+#	(cd $(REGRESSIONS); git checkout; git pull)
+#	(cd $(EXAMPLES); git checkout; git pull)
+#	(cd $(MOM6); git checkout; git pull; git submodule init; git submodule update)
+#	(cd $(SIS2); git checkout; git pull)
+#	(cd $(ICEBERGS); git checkout; git pull)
+#show_remotes: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
+#	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
 GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
 GITHUB=git@github.com:# This uses the authenticated SSH protocol
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
@@ -356,9 +394,10 @@ $(LM3)/land_param: | $(LM3)
 $(LM3)/land_lad2: | $(LM3)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
 	(cd $@; git checkout $(LM3_tag))
-	make cppLM3
+	make -s -n cppLM3
+	make -s cppLM3 >& /dev/null
 cppLM3: $(LM3_REPOS)
-	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
+	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -nostdinc -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $(LM3)/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	mkdir -p $(LM3)/land_lad2_cpp
 	find $(LM3)/land_lad2 -type f -name \*.f90 -exec mv {} $(LM3)/land_lad2_cpp/ \;
@@ -376,9 +415,9 @@ $(DATASETS)/%.tgz: | $(DATASETS)
 	(cd $(@D); wget ftp://ftp.gfdl.noaa.gov/pub/aja/datasets/$(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
-	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+	git clone $(GITHUB_URL)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
 wiki.MOM6:
-	git clone $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
+	git clone $(GITHUB_URL)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory

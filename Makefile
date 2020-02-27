@@ -77,7 +77,7 @@ EXPT_EXECS=ocean_only symmetric_ocean_only symmetric_SIS2 # Executable/model con
 #EXPT_EXECS+=bgc_SIS2
 
 # Experiments to test when using EXAMPLES=ESMG-configs
-ESMG_EXPTS=CCS1
+#ESMG_EXPTS=CCS1
 
 # Protocols for Github
 GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
@@ -119,7 +119,7 @@ LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
 OCEAN_SHARED=$(EXTRAS)/ocean_shared
 # Name of ice_ocean_extras directory (which is in $(MOM6_SOURCES) and is not a module)
-ICE_OCEAN_EXTRAS=$(MOM6_SOURCES)/src/ice_ocean_extras
+ICE_OCEAN_EXTRAS=$(EXTRAS)/ice_ocean_extras
 # Location to build
 BUILD_DIR=/import/c1/AKWATERS/kshedstrom/MOM6/build
 # MKMF package
@@ -171,7 +171,7 @@ ICEBERGS_tag=dev/gfdl
 # Default compiler configuration
 EXEC_MODE=repro
 TEMPLATE=$(TEMPLATE_DIR)/$(SITE)-$(COMPILER).mk
-#NPES=2
+NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
 
@@ -394,8 +394,7 @@ $(LM3)/land_param: | $(LM3)
 $(LM3)/land_lad2: | $(LM3)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
 	(cd $@; git checkout $(LM3_tag))
-	make -s -n cppLM3
-	make -s cppLM3 >& /dev/null
+	make cppLM3
 cppLM3: $(LM3_REPOS)
 	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -nostdinc -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $(LM3)/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
@@ -543,7 +542,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): $(for
 	$(build_mom6_executable)
 
 # Symmetric ice_ocean
-SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -555,7 +554,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS/$(mode)/MOM6): $(foreach di
 	$(build_mom6_executable)
 
 # SIS2 executable
-SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_OCEAN_EXTRAS) $(COUPLER) $(LAND_NULL) $(SIS2) $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -965,8 +964,8 @@ define run-model-to-make-$(TIMESTATS)
 @echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 $(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats$(suffix $@),time_stamp.out} $@
-$(SRCENV) $(BUILD_DIR)/$(COMPILER)/env; $(SETVAR) rdir=$$cwd; (cd $(dir $@); $(SETENV) OMP_NUM_THREADS$(SETENVSEP)1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
-#set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std$(suffix $@).out) |& tee stderr.$(STDERR_LABEL) | sed 's,^,$@: ,'
+$(SRCENV) $(BUILD_DIR)/$(COMPILER)/env; $(SETVAR) rdir=$$cwd; (cd $(dir $@); $(SETENV) OMP_NUM_THREADS$(SETENVSEP)1; (time $(MPIRUN) -np $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
+#set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -np $(NPES) $$rdir/$< > std$(suffix $@).out) |& tee stderr.$(STDERR_LABEL) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'

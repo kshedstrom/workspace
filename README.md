@@ -2,6 +2,12 @@
 
 # workspace
 
+This Makefile comes from adcroft's workspace, modified for my (Kate's)
+needs. I also stashed the Makefile.esmg file from MOM6's testing
+directory here.
+
+# workspace
+
 **This Makefile is not part of MOM6, it is not supported, I do not recommend that anyone use it, and I will not respond to pleas for help regards this Makefile.** --The Managment.
 
 This repository provides a "Makefile" that does pretty much everything I need to be able to regards MOM6 (install, build, test).

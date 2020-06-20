@@ -34,6 +34,9 @@ SOLO_EXPTS=$(foreach dir, \
           double_gyre DOME Phillips_2layer \
           ,ocean_only/$(dir))
 
+# Used to be symmetric
+SOLO_EXPTS+=ocean_only/circle_obcs
+
 ESMG_EXPTS=$(foreach dir, \
           Tidal_bay Supercritical channel/plain channel/beta channel/sloshing \
           channel/sloshing-beta Kelvin_wave/barotropic \
@@ -57,7 +60,6 @@ ESMG_EXPTS=$(foreach dir, \
 #SOLO_EXPTS+=ocean_only/nonBous_global ocean_only/global_ALE/layer
 #SOLO_EXPTS+=ocean_only/MESO_025_63L ocean_only/benchmark
 #SOLO_EXPTS+=ocean_only/tracer_mixing/layer
-SYMMETRIC_EXPTS=ocean_only/circle_obcs
 #SYMMETRIC_EXPTS=ocean_only/circle_obcs ocean_only/DOME
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2_bergs_cgrid_1 SIS2_bergs_cgrid_2,ice_ocean_SIS2/$(dir))
@@ -69,10 +71,10 @@ LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
 #BGC_SIS2_EXPTS=$(foreach dir,COBALT_OM4_05,bgc_SIS2/$(dir))
 #EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS) $(LM3_SIS2_EXPTS)
 #EXPTS+=$(BGC_SIS2_EXPTS)
-EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS)
+EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS)
 EXPTS+=$(ESMG_EXPTS)
 #EXPTS+=$(BGC_SIS2_EXPTS) $(SIS2_EXPTS)
-EXPT_EXECS=ocean_only symmetric_ocean_only SYM_ice_ocean_SIS2 # Executable/model configurations to build
+EXPT_EXECS=ocean_only SYM_ice_ocean_SIS2 # Executable/model configurations to build
 #EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
 
@@ -203,7 +205,7 @@ endif
 # The "all" target depends on which set of nodes we are on...
 ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
 ALLMESG=On batch nodes: building executables, running experiments
-ALLTARGS=ale solo symmetric symmetric_sis2
+ALLTARGS=ale solo symmetric_sis2
 #ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
 ALLMESG=On login nodes: building executables, reporting status
@@ -225,7 +227,7 @@ debug: $(BUILD_DIR)/$(COMPILER)/shared/debug/libfms.a $(foreach exec,$(EXPT_EXEC
 prod: $(foreach exec,$(EXPT_EXECS),$(BUILD_DIR)/$(exec).$(COMPILER).prod/MOM6)
 ale: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 solo: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
-symmetric: $(BUILD_DIR)/$(COMPILER)/symmetric_ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER)) $(foreach dir,$(ESMG_EXPTS),$(MOM6_SOURCES)/$(dir)/$(TIMESTATS).$(COMPILER))
+solo: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(ESMG_EXPTS),$(MOM6_SOURCES)/$(dir)/$(TIMESTATS).$(COMPILER))
 symmetric_sis2: $(BUILD_DIR)/$(COMPILER)/SYM_ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 sis: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 sis2: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
@@ -530,19 +532,19 @@ mkdir -p $(dir $@)
 endef
 
 # solo executable
-SOLO_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
+SOLO_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/solo_driver $(MOM6)/config_src/external $(MOM6)/src/*/ $(MOM6)/src/*/*/
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only/$(mode)/MOM6): SRCPTH=$(SOLO_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only/$(mode)/MOM6): $(foreach dir,$(SOLO_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # Symmetric executable
-SOLOSYM_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
+SOLOSYM_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/solo_driver $(MOM6)/config_src/external $(MOM6)/src/*/ $(MOM6)/src/*/*/
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): SRCPTH=$(SOLOSYM_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): $(foreach dir,$(SOLOSYM_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS executable
-SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS1) $(FMS)/coupler $(FMS)/include
+SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/config_src/external $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS1) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS/$(mode)/MOM6): SRCPTH=$(SIS_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS/$(mode)/MOM6): $(foreach dir,$(SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -554,7 +556,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach d
 	$(build_mom6_executable)
 
 # Symmetric ice_ocean
-SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2)/src/ $(SIS2)/config_src/dynamic_symmetric $(ICEBERGS) $(FMS)/coupler $(FMS)/include
+SYM_SIS2_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/coupled_driver $(MOM6)/config_src/external $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(ICE_PARAM) $(COUPLER) $(LAND_NULL) $(SIS2)/src/ $(SIS2)/config_src/dynamic_symmetric $(ICEBERGS) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SYM_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/SYM_ice_ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SYM_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
